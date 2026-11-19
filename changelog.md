@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.1
+* Separated now playing notifications into independent settings: `show-notification` (on song selection) and `notify-on-menu-return` (on returning to the menu from a level)
+* Disabled `notify-on-menu-return` by default to eliminate repetitive notifications when exiting levels
+* Bumped mod version to 1.1.1
+
 ## v1.1.0
 * Fixed custom music continuing to play when Geometry Dash's native **Menu Music** toggle (`0122`) is disabled
 * Fixed settings changes not applying immediately when opened from Geode's Mods list (`ModsLayer`)
