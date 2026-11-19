@@ -4,6 +4,8 @@ Choose any custom audio file (`.mp3`, `.ogg`, `.wav`, `.flac`) to play on the Ge
 
 ## Features
 
+- **Global Music Library:** Keep local imports and Newgrounds downloads together, switch songs instantly, and see the active track with a green check.
+
 - **Online Music Browser & Song ID Downloader:** Download and apply any Newgrounds or Geometry Dash track directly by entering its Song ID, complete with title, artist, and size inspection.
 - **Curated Community Presets:** One-click downloads and playback for 12 iconic community tracks (Waterflame, Creo, Dimrain47, F-777, Dex Arson, ColBreakz, etc.).
 - **Flexible audio formats:** Supports `.mp3`, `.ogg`, `.wav`, and `.flac` files selected through Geode's native file picker.
@@ -15,8 +17,8 @@ Choose any custom audio file (`.mp3`, `.ogg`, `.wav`, `.flac`) to play on the Ge
 ## How to use
 
 1. Click the music note shortcut on the bottom bar of the main menu.
-2. Enter any **Newgrounds Song ID** to download it directly, click **Use / Download** on any community preset, or click **Local File** to select your own audio track.
-3. Playback updates immediately on the main menu.
+2. Open **Library** and click **+ Import File**, or open **Download / Presets** to enter a Newgrounds Song ID or choose a community preset.
+3. Use **USE** to switch songs; your library persists between sessions. The trash button removes songs and deletes managed copies.
 
 ## Credits
 

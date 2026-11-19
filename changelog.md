@@ -2,10 +2,14 @@
 
 ## v1.2.0
 * Added interactive in-game **Music Browser** popup accessible from the main menu shortcut button
+* Added persistent **Global Music Library** (`library.json`) with unified management for local and downloaded tracks
+* Added **Song Switching** with live active status badges (`GJ_completesIcon_001.png`), instant playback switch, and song deletion
+* Added **+ Import File** to import local audio tracks directly into the global library
 * Added Newgrounds / Geometry Dash **Song ID direct download** via Boomlings audio endpoint with live title, artist, and size inspection
 * Added **Community Presets** catalog featuring 12 iconic GD community tracks (Dimrain47, Waterflame, F-777, Creo, Dex Arson, ColBreakz, Panda Eyes & Teminite, Meganeko)
+* Fixed missing accented letters in Spanish UI strings (`cleanGDText`) and preserved mixed case for titles and artists using `chatFont.fnt`
 * Cached downloaded audio files in mod save storage (`downloaded_songs/`) with automatic format validation and reuse
-* Integrated local file picker and settings shortcut directly inside the browser popup
+* Integrated settings shortcut directly inside the browser popup
 
 ## v1.1.1
 * Separated now playing notifications into independent settings: `show-notification` (on song selection) and `notify-on-menu-return` (on returning to the menu from a level)

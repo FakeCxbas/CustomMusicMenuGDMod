@@ -1,4 +1,5 @@
 #include "MusicManager.hpp"
+#include "SongLibrary.hpp"
 #include "MusicBrowserPopup.hpp"
 
 #include <Geode/Geode.hpp>
@@ -106,7 +107,13 @@ class $modify(CustomMenuLayer, MenuLayer) {
 };
 
 $on_mod(Loaded) {
+    auto loaded = custom_menu_music::SongLibrary::get().initialize();
+    if (loaded.isErr()) log::warn("Song library: {}", loaded.unwrapErr());
     listenForSettingChanges<std::filesystem::path>("custom-music-file", +[](std::filesystem::path const&) {
+        auto& library = custom_menu_music::SongLibrary::get();
+        if (library.isSelecting()) return;
+        auto synced = library.syncActive();
+        if (synced.isErr()) log::warn("Song library: {}", synced.unwrapErr());
         MusicManager::refreshMenuMusic(true);
     });
     listenForSettingChanges<bool>("enabled", +[](bool) {
