@@ -8,10 +8,14 @@
 	},
 	"id": "fakecxbas.custom_menu_music",
 	"name": "Custom Menu Music",
-	"version": "v1.0.1",
+	"version": "v1.1.0",
 	"developer": "FakeCxbas",
-	"description": "Choose any audio file (.mp3, .ogg, .wav) to play on the main menu.",
-	"repository": "https://github.com/FakeCxbas/Custom-Music-Menu",
+	"description": "Choose any audio file (.mp3, .ogg, .wav, .flac) to play on the main menu.",
+	"repository": "https://github.com/FakeCxbas/CustomMusicMenuGDMod",
+	"issues": {
+		"info": "Report bugs or request features on GitHub Issues.",
+		"url": "https://github.com/FakeCxbas/CustomMusicMenuGDMod/issues"
+	},
 	"tags": [
 		"music",
 		"customization",
@@ -29,15 +33,15 @@
 		},
 		"custom-music-file": {
 			"name": "Audio File",
-			"description": "Select an audio file (.mp3, .ogg, .wav) from your computer.",
+			"description": "Select an audio file (.mp3, .ogg, .wav, .flac) from your computer.",
 			"type": "file",
 			"default": "",
 			"control": {
 				"dialog": "open",
 				"filters": [
 					{
-						"description": "Audio Files (*.mp3, *.ogg, *.wav)",
-						"files": ["*.mp3", "*.ogg", "*.wav"]
+						"description": "Audio Files (*.mp3, *.ogg, *.wav, *.flac)",
+						"files": ["*.mp3", "*.ogg", "*.wav", "*.flac"]
 					}
 				]
 			}
