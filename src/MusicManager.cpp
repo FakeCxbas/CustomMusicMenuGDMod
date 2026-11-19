@@ -1,4 +1,5 @@
 #include "MusicManager.hpp"
+#include "GDText.hpp"
 
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
@@ -70,7 +71,7 @@ namespace custom_menu_music {
         auto text = isSpanish()
             ? fmt::format("Reproduciendo: {}", name)
             : fmt::format("Now Playing: {}", name);
-        geode::Notification::create(text, geode::NotificationIcon::Success, 1.5f)->show();
+        geode::Notification::create(cleanGDText(text), geode::NotificationIcon::Success, 1.5f)->show();
     }
 
     bool MusicManager::playCustomMusic(bool fadeIn, bool notifyIfStarted) {

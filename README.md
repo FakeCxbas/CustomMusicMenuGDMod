@@ -16,6 +16,9 @@ A Geode mod for Geometry Dash (2.2081) that lets you choose any custom audio fil
 
 ## Features
 
+- **Persistent music library:** Import local files, keep downloads, switch the active song, and remove entries from one library saved in `library.json`.
+- **Library and Download / Presets tabs:** Scrollable rows show a music icon, title, artist, source, and a green active indicator. Song metadata preserves capitalization and accents are transliterated for GD bitmap fonts.
+
 - **Multi-format audio support:** Choose `.mp3`, `.ogg`, `.wav`, or `.flac` files via Geode's built-in file picker.
 - **Native Menu Music toggle compliance:** Checks `GameManager::getGameVariable("0122")` (`GameVar::DisableMenuMusic`) in all hooks and setting listeners so disabling Menu Music in Geometry Dash options always mutes menu music.
 - **Live settings reload:** Changes to the audio file, enabled toggle, loop toggle, and menu shortcut button apply immediately from both `MenuLayer` and Geode's `ModsLayer`.
@@ -25,10 +28,17 @@ A Geode mod for Geometry Dash (2.2081) that lets you choose any custom audio fil
 ## Usage
 
 1. Click the music note shortcut on the bottom bar of the main menu (or open **Geode -> Mods -> Custom Menu Music -> Settings**).
-2. Select an audio file from your device.
-3. Playback starts immediately in the menu context when both the mod and Geometry Dash's **Menu Music** option are enabled.
+2. In **Library**, select **+ Import File** to copy an audio file into the mod's `downloaded_songs` folder. Use **Download / Presets** for Newgrounds Song IDs and community presets.
+3. Select **USE** to switch songs; the active song has a green check. Playback starts when both the mod and Geometry Dash's **Menu Music** option are enabled.
+4. The trash button removes an entry and deletes its file only if it belongs to `downloaded_songs`. Removing the active song restores the default menu track.
+
+On first use of an empty library, the mod registers the configured audio file and existing MP3 downloads. External files registered by this migration remain at their original paths and are never deleted by the library.
 
 ## Architecture
+
+- `src/SongLibrary.hpp` / `src/SongLibrary.cpp`: Persistent library, initial migration, local copies, Newgrounds metadata, selection, and managed-file deletion.
+- `src/MusicBrowserPopup.hpp` / `src/MusicBrowserPopup.cpp`: Library and download tabs, file picker, and scrollable song rows.
+- `src/GDText.hpp`: Case-preserving UTF-8 transliteration for GD fonts.
 
 - `src/MusicManager.hpp` / `src/MusicManager.cpp`: Encapsulates custom file validation (`std::error_code`), native Menu Music state checks (`0122`), FMOD playback control, menu context guards, and cross-platform locale detection.
 - `src/main.cpp`: Hooks `GameManager` (`getMenuMusicFile`, `playMenuMusic`, `fadeInMenuMusic`), `MenuLayer` (`init`, live shortcut button management), and `$on_mod(Loaded)` setting listeners.
@@ -59,6 +69,17 @@ cmake -B build-win -S . \
   -DCMAKE_BUILD_TYPE=Release
 cmake --build build-win --config Release
 ```
+
+## Verification
+
+Run the standalone text regression tests with a native C++23 compiler:
+
+```bash
+c++ -std=c++23 -Wall -Wextra -Werror -Isrc tests/GDTextTest.cpp -o /tmp/modgd-text-test
+/tmp/modgd-text-test
+```
+
+In Geometry Dash, verify migration with an empty library, local imports with duplicate filenames, switching songs, persistence after restart, preset downloads, and deleting both active and inactive songs. Also check that removing a migrated external entry leaves its original file intact.
 
 ## License & Authors
 
