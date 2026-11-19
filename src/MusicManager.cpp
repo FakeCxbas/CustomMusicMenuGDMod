@@ -66,7 +66,6 @@ namespace custom_menu_music {
     }
 
     void MusicManager::showSongNotification(std::filesystem::path const& path) {
-        if (!geode::Mod::get()->getSettingValue<bool>("show-notification")) return;
         auto name = geode::utils::string::pathToString(path.filename());
         auto text = isSpanish()
             ? fmt::format("Reproduciendo: {}", name)
@@ -84,7 +83,7 @@ namespace custom_menu_music {
 
         auto loop = geode::Mod::get()->getSettingValue<bool>("loop");
         engine->playMusic(pathStr, loop, fadeIn ? 1.0f : 0.0f, 0);
-        if (notifyIfStarted && geode::Mod::get()->getSettingValue<bool>("show-notification")) {
+        if (notifyIfStarted) {
             geode::queueInMainThread([path]() { showSongNotification(path); });
         }
         return true;
@@ -98,7 +97,9 @@ namespace custom_menu_music {
                 auto pathStr = geode::utils::string::pathToString(path);
                 auto loop = geode::Mod::get()->getSettingValue<bool>("loop");
                 engine->playMusic(pathStr, loop, 0.3f, 0);
-                if (notifyOnPlay) showSongNotification(path);
+                if (notifyOnPlay && geode::Mod::get()->getSettingValue<bool>("show-notification")) {
+                    showSongNotification(path);
+                }
             }
         } else if (auto* gm = GameManager::sharedState()) {
             gm->playMenuMusic();

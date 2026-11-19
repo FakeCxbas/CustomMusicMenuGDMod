@@ -8,7 +8,7 @@
 	},
 	"id": "fakecxbas.custom_menu_music",
 	"name": "Custom Menu Music",
-	"version": "v1.1.0",
+	"version": "v1.1.1",
 	"developer": "FakeCxbas",
 	"description": "Choose any audio file (.mp3, .ogg, .wav, .flac) to play on the main menu.",
 	"repository": "https://github.com/FakeCxbas/CustomMusicMenuGDMod",
@@ -59,10 +59,16 @@
 			"default": true
 		},
 		"show-notification": {
-			"name": "Now Playing Notification",
-			"description": "Show a notification with the song title when it starts playing.",
+			"name": "Notify on Song Selection",
+			"description": "Show a notification with the song title when selecting or changing the audio file.",
 			"type": "bool",
 			"default": true
+		},
+		"notify-on-menu-return": {
+			"name": "Notify on Menu Return",
+			"description": "Show 'Now Playing' notification every time you return to the main menu from a level.",
+			"type": "bool",
+			"default": false
 		},
 		"language": {
 			"name": "Language",

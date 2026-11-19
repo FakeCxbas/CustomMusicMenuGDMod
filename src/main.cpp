@@ -21,7 +21,8 @@ class $modify(CustomGameManager, GameManager) {
 
     void playMenuMusic() {
         if (MusicManager::shouldOverrideMenuMusic()) {
-            MusicManager::playCustomMusic(false, true);
+            bool notify = Mod::get()->getSettingValue<bool>("notify-on-menu-return");
+            MusicManager::playCustomMusic(false, notify);
             return;
         }
         GameManager::playMenuMusic();
@@ -29,7 +30,8 @@ class $modify(CustomGameManager, GameManager) {
 
     void fadeInMenuMusic() {
         if (MusicManager::shouldOverrideMenuMusic()) {
-            MusicManager::playCustomMusic(true, true);
+            bool notify = Mod::get()->getSettingValue<bool>("notify-on-menu-return");
+            MusicManager::playCustomMusic(true, notify);
             return;
         }
         GameManager::fadeInMenuMusic();
