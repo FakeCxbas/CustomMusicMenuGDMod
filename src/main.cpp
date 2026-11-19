@@ -1,4 +1,5 @@
 #include "MusicManager.hpp"
+#include "MusicBrowserPopup.hpp"
 
 #include <Geode/Geode.hpp>
 #include <Geode/binding/SimplePlayer.hpp>
@@ -100,7 +101,7 @@ class $modify(CustomMenuLayer, MenuLayer) {
     }
 
     void onCustomMenuMusicBtn(cocos2d::CCObject*) {
-        geode::openSettingsPopup(geode::Mod::get());
+        if (auto* popup = custom_menu_music::MusicBrowserPopup::create()) popup->show();
     }
 };
 

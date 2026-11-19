@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0
+* Added interactive in-game **Music Browser** popup accessible from the main menu shortcut button
+* Added Newgrounds / Geometry Dash **Song ID direct download** via Boomlings audio endpoint with live title, artist, and size inspection
+* Added **Community Presets** catalog featuring 12 iconic GD community tracks (Dimrain47, Waterflame, F-777, Creo, Dex Arson, ColBreakz, Panda Eyes & Teminite, Meganeko)
+* Cached downloaded audio files in mod save storage (`downloaded_songs/`) with automatic format validation and reuse
+* Integrated local file picker and settings shortcut directly inside the browser popup
+
 ## v1.1.1
 * Separated now playing notifications into independent settings: `show-notification` (on song selection) and `notify-on-menu-return` (on returning to the menu from a level)
 * Disabled `notify-on-menu-return` by default to eliminate repetitive notifications when exiting levels
