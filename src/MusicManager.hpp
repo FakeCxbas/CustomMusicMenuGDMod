@@ -11,7 +11,6 @@ namespace custom_menu_music {
         static std::optional<std::filesystem::path> getValidCustomFilePath();
         static bool shouldOverrideMenuMusic();
         static bool isInMenuContext();
-        static bool isSpanish();
         static void showSongNotification(std::filesystem::path const& path);
         static bool playCustomMusic(bool fadeIn, bool notifyIfStarted);
         static void refreshMenuMusic(bool notifyOnPlay);

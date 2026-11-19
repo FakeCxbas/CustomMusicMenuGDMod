@@ -23,7 +23,7 @@ A Geode mod for Geometry Dash (2.2081) that lets you choose any custom audio fil
 - **Native Menu Music toggle compliance:** Checks `GameManager::getGameVariable("0122")` (`GameVar::DisableMenuMusic`) in all hooks and setting listeners so disabling Menu Music in Geometry Dash options always mutes menu music.
 - **Live settings reload:** Changes to the audio file, enabled toggle, loop toggle, and menu shortcut button apply immediately from both `MenuLayer` and Geode's `ModsLayer`.
 - **Texture pack friendly UI:** Uses native `CircleButtonSprite` paired with the player's current `SimplePlayer` cube colors and glow.
-- **Bilingual notifications:** Optional Now Playing notification supporting `Auto`, `English`, and `Español` without platform-unsafe `std::locale("")` initialization.
+- **English interface and notifications:** All controls and status messages use English, with optional Now Playing notifications.
 
 ## Usage
 
@@ -40,7 +40,7 @@ On first use of an empty library, the mod registers the configured audio file an
 - `src/MusicBrowserPopup.hpp` / `src/MusicBrowserPopup.cpp`: Library and download tabs, file picker, and scrollable song rows.
 - `src/GDText.hpp`: Case-preserving UTF-8 transliteration for GD fonts.
 
-- `src/MusicManager.hpp` / `src/MusicManager.cpp`: Encapsulates custom file validation (`std::error_code`), native Menu Music state checks (`0122`), FMOD playback control, menu context guards, and cross-platform locale detection.
+- `src/MusicManager.hpp` / `src/MusicManager.cpp`: Encapsulates custom file validation (`std::error_code`), native Menu Music state checks (`0122`), FMOD playback control, menu context guards, and English Now Playing notifications.
 - `src/main.cpp`: Hooks `GameManager` (`getMenuMusicFile`, `playMenuMusic`, `fadeInMenuMusic`), `MenuLayer` (`init`, live shortcut button management), and `$on_mod(Loaded)` setting listeners.
 
 ## Building from Source
@@ -79,7 +79,7 @@ c++ -std=c++23 -Wall -Wextra -Werror -Isrc tests/GDTextTest.cpp -o /tmp/modgd-te
 /tmp/modgd-text-test
 ```
 
-In Geometry Dash, verify migration with an empty library, local imports with duplicate filenames, switching songs, persistence after restart, preset downloads, and deleting both active and inactive songs. Also check that removing a migrated external entry leaves its original file intact.
+In Geometry Dash, verify migration with an empty library, local imports with duplicate filenames, switching songs, persistence after restart, preset downloads, and deleting both active and inactive songs. Scroll both tabs through multiple rows and back, checking that USE/Get buttons, trash buttons, and active badges stay visible with their rows. The status area should be empty on a successful initial load. Also check that removing a migrated external entry leaves its original file intact.
 
 ## License & Authors
 

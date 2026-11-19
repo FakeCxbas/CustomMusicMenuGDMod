@@ -19,7 +19,6 @@ protected:
     geode::async::TaskHolder<geode::utils::file::PickResult> m_picker;
     bool m_busy = false;
     bool m_closed = false;
-    bool m_spanish = false;
     bool m_showLibrary = true;
     bool init() override;
     void onClose(cocos2d::CCObject* sender) override;

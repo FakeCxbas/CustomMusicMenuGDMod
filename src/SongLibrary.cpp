@@ -148,7 +148,7 @@ Result<> SongLibrary::setActiveSong(std::string_view id) {
     auto found = std::ranges::find_if(m_songs, [&](auto const& s) { return s.id == id; });
     if (found == m_songs.end()) return Err("Song not found");
     std::error_code ec;
-    if (!std::filesystem::is_regular_file(found->filePath, ec)) return Err("Audio file is missing / Falta el archivo de audio");
+    if (!std::filesystem::is_regular_file(found->filePath, ec)) return Err("Audio file is missing");
     auto path = found->filePath;
     auto previous = m_songs;
     for (auto& song : m_songs) song.active = song.id == id;

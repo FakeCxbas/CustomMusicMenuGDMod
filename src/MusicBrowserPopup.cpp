@@ -1,5 +1,4 @@
 #include "MusicBrowserPopup.hpp"
-#include "MusicManager.hpp"
 #include "SongLibrary.hpp"
 #include "GDText.hpp"
 #include <Geode/Geode.hpp>
@@ -34,11 +33,12 @@ CCSprite* icon(char const* name, float size) {
     sprite->setScale(size / std::max(sprite->getContentSize().width, sprite->getContentSize().height));
     return sprite;
 }
-void activeBadge(CCNode* parent, float x, float y, bool spanish) {
+void activeBadge(CCNode* parent, float x, float y) {
     if (auto check = icon("GJ_completesIcon_001.png", 18)) {
+        check->setColor({100, 255, 120});
         check->setPosition({x, y + 7}); parent->addChild(check);
     }
-    auto text = label(spanish ? "ACTIVA" : "ACTIVE", parent, {x, y - 12}, .22f, 55);
+    auto text = label("ACTIVE", parent, {x, y - 12}, .22f, 55);
     text->setColor({100, 255, 120});
 }
 }
@@ -49,12 +49,11 @@ MusicBrowserPopup* MusicBrowserPopup::create() {
 }
 bool MusicBrowserPopup::init() {
     if (!Popup::init(440.f, 320.f)) return false;
-    m_spanish = MusicManager::isSpanish();
-    setTitle(m_spanish ? "Explorador de Musica" : "Music Browser");
+    setTitle("Music Browser");
     CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile("GJ_GameSheet03.plist");
-    m_libraryTab = button(m_spanish ? "Biblioteca" : "Library", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {118, 269}, .6f);
+    m_libraryTab = button("Library", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {118, 269}, .6f);
     m_libraryTab->setTag(0);
-    m_onlineTab = button(m_spanish ? "Descargar / Presets" : "Download / Presets", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {310, 269}, .5f);
+    m_onlineTab = button("Download / Presets", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {310, 269}, .5f);
     m_onlineTab->setTag(1);
     m_online = CCNode::create();
     m_mainLayer->addChild(m_online);
@@ -65,15 +64,15 @@ bool MusicBrowserPopup::init() {
     m_songId->setPosition({195, 226});
     m_online->addChild(m_songId);
     auto menu = CCMenu::create(); menu->setPosition({0, 0}); m_online->addChild(menu);
-    button(m_spanish ? "Descargar" : "Download", this, menu_selector(MusicBrowserPopup::onDownload), menu, {350, 226});
+    button("Download", this, menu_selector(MusicBrowserPopup::onDownload), menu, {350, 226});
     m_statusLabel = label("", m_mainLayer, {220, 58}, .3f, 400, true);
-    m_import = button(m_spanish ? "+ Importar Archivo" : "+ Import File", this, menu_selector(MusicBrowserPopup::onLocalFile), m_buttonMenu, {139, 27});
-    button(m_spanish ? "Ajustes" : "Settings", this, menu_selector(MusicBrowserPopup::onSettings), m_buttonMenu, {345, 27});
+    m_import = button("+ Import File", this, menu_selector(MusicBrowserPopup::onLocalFile), m_buttonMenu, {139, 27});
+    button("Settings", this, menu_selector(MusicBrowserPopup::onSettings), m_buttonMenu, {345, 27});
     auto loaded = SongLibrary::get().initialize();
     if (loaded.isErr()) setStatus(loaded.unwrapErr());
     else {
         auto sync = SongLibrary::get().syncActive();
-        setStatus(sync.isErr() ? sync.unwrapErr() : (m_spanish ? "Biblioteca de Musica" : "Music Library"));
+        setStatus(sync.isErr() ? sync.unwrapErr() : "");
     }
     populateList();
     return true;
@@ -104,29 +103,37 @@ void MusicBrowserPopup::populateList() {
     size_t count = m_showLibrary ? library.size() : presets.size();
     float height = std::max(viewport, count * 58.f);
     content->setContentSize({400, height});
-    if (!count) label(m_spanish ? "Importa tu primera cancion" : "Import your first song", content, {200, height / 2}, .75f, 360, true);
+    if (!count) label("Import your first song or choose a preset", content, {200, height / 2}, .75f, 360, true);
     for (size_t i = 0; i < count; ++i) {
         float y = height - (i + .5f) * 58.f;
+        // Keep each row together so viewport culling also controls its buttons.
+        auto row = CCNode::create();
+        row->setContentSize({398.f, 55.f});
+        row->setPosition({1.f, y - 27.f});
+        content->addChild(row);
         auto bg = CCLayerColor::create(i % 2 ? ccc4(0, 0, 0, 65) : ccc4(255, 255, 255, 18), 398, 55);
-        bg->setPosition({1, y - 27}); content->addChild(bg);
+        bg->setPosition({0, 0}); row->addChild(bg);
         auto note = icon("GJ_noteIcon_001.png", 27);
         if (!note) note = icon("GJ_musicIcon_001.png", 27);
-        if (note) { note->setPosition({23, y}); content->addChild(note); }
+        if (note) { note->setPosition({23, 27}); row->addChild(note); }
         auto title = m_showLibrary ? library[i].title : presets[i].title;
         auto artist = m_showLibrary ? library[i].artist : presets[i].artist;
         auto source = m_showLibrary ? (library[i].source == "Local" ? "Local" : fmt::format("NG {}", library[i].songId)) : fmt::format("NG {}", presets[i].id);
-        auto titleNode = label(title, content, {46, y + 15}, .8f, 235, true); titleNode->setAnchorPoint({0, .5f});
-        auto artistNode = label(artist.empty() ? (m_spanish ? "Artista desconocido" : "Unknown artist") : artist, content, {46, y}, .6f, 235, true);
+        auto titleNode = label(title, row, {46, 42}, .8f, 235, true); titleNode->setAnchorPoint({0, .5f});
+        auto artistNode = label(artist.empty() ? "Unknown artist" : artist, row, {46, 27}, .6f, 235, true);
         artistNode->setAnchorPoint({0, .5f}); artistNode->setColor({190, 210, 230});
-        auto sourceNode = label(source, content, {46, y - 16}, .48f, 235, true);
+        auto sourceNode = label(source, row, {46, 11}, .48f, 235, true);
         sourceNode->setAnchorPoint({0, .5f}); sourceNode->setColor({150, 185, 210});
-        auto rowMenu = CCMenu::create(); rowMenu->setPosition({0, 0}); content->addChild(rowMenu);
+        auto rowMenu = CCMenu::create();
+        rowMenu->setPosition({0, 0});
+        rowMenu->setContentSize({398.f, 55.f});
+        row->addChild(rowMenu);
         bool active = m_showLibrary ? library[i].active : std::ranges::any_of(library, [&](auto const& s) { return s.songId == presets[i].id && s.active; });
-        if (active) activeBadge(content, 318, y, m_spanish);
+        if (active) activeBadge(row, 318, 27);
         else {
             bool cached = m_showLibrary || MusicDownloader::getDownloadedPath(presets[i].id).has_value();
-            auto use = button(cached ? (m_spanish ? "USAR" : "USE") : (m_spanish ? "Bajar" : "Get"), this,
-                m_showLibrary ? menu_selector(MusicBrowserPopup::onUse) : menu_selector(MusicBrowserPopup::onPreset), rowMenu, {318, y}, .43f);
+            auto use = button(cached ? "USE" : "Get", this,
+                m_showLibrary ? menu_selector(MusicBrowserPopup::onUse) : menu_selector(MusicBrowserPopup::onPreset), rowMenu, {318, 27}, .43f);
             if (m_showLibrary) use->setID(library[i].id);
             else use->setTag(presets[i].id);
         }
@@ -134,8 +141,8 @@ void MusicBrowserPopup::populateList() {
             CCMenuItemSpriteExtra* remove = nullptr;
             if (auto trash = icon("GJ_trashBtn_001.png", 27)) {
                 remove = CCMenuItemSpriteExtra::create(trash, this, menu_selector(MusicBrowserPopup::onRemove));
-                remove->setPosition({377, y}); rowMenu->addChild(remove);
-            } else remove = button("X", this, menu_selector(MusicBrowserPopup::onRemove), rowMenu, {377, y}, .4f);
+                remove->setPosition({377, 27}); rowMenu->addChild(remove);
+            } else remove = button("X", this, menu_selector(MusicBrowserPopup::onRemove), rowMenu, {377, 27}, .4f);
             remove->setID(library[i].id);
         }
     }
@@ -144,20 +151,20 @@ void MusicBrowserPopup::populateList() {
 void MusicBrowserPopup::onUse(CCObject* sender) {
     auto id = static_cast<CCNode*>(sender)->getID();
     auto result = SongLibrary::get().setActiveSong(id);
-    setStatus(result.isErr() ? result.unwrapErr() : (m_spanish ? "Cancion seleccionada" : "Song selected"));
+    setStatus(result.isErr() ? result.unwrapErr() : "Song selected");
     populateList();
 }
 void MusicBrowserPopup::onRemove(CCObject* sender) {
     auto id = static_cast<CCNode*>(sender)->getID();
     auto result = SongLibrary::get().removeSong(id);
-    setStatus(result.isErr() ? result.unwrapErr() : (m_spanish ? "Cancion eliminada" : "Song removed"));
+    setStatus(result.isErr() ? result.unwrapErr() : "Song removed");
     populateList();
 }
 void MusicBrowserPopup::onDownload(CCObject*) {
     auto text = m_songId->getString(); int id = 0;
     auto parsed = std::from_chars(text.data(), text.data() + text.size(), id);
     if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() || id <= 0) {
-        setStatus(m_spanish ? "Introduce un Song ID valido" : "Enter a valid Song ID"); return;
+        setStatus("Enter a valid Song ID"); return;
     }
     selectSong(id);
 }
@@ -166,7 +173,7 @@ void MusicBrowserPopup::registerSong(SongInfo const& info, std::filesystem::path
     auto added = SongLibrary::get().addSong(info, path);
     if (added.isErr()) { setStatus(added.unwrapErr()); return; }
     auto selected = SongLibrary::get().setActiveSong(added.unwrap());
-    setStatus(selected.isErr() ? selected.unwrapErr() : (m_spanish ? "Cancion seleccionada" : "Song selected"));
+    setStatus(selected.isErr() ? selected.unwrapErr() : "Song selected");
     populateList();
 }
 void MusicBrowserPopup::selectSong(int id) {
@@ -178,14 +185,14 @@ void MusicBrowserPopup::selectSong(int id) {
         registerSong(info, *cached); return;
     }
     m_busy = true;
-    setStatus(m_spanish ? "Consultando cancion..." : "Looking up song...");
+    setStatus("Looking up song...");
     WeakRef<MusicBrowserPopup> weak(this);
     MusicDownloader::fetchSongInfo(id, [weak](Result<SongInfo> result) {
         auto self = weak.lock();
         if (!self || self->m_closed) return;
         if (result.isErr()) { self->m_busy = false; self->setStatus(result.unwrapErr()); return; }
         auto info = result.unwrap();
-        self->setStatus(fmt::format("{} {} ({:.1f} MB)", self->m_spanish ? "Descargando" : "Downloading", info.title, info.sizeMB));
+        self->setStatus(fmt::format("Downloading {} ({:.1f} MB)...", info.title, info.sizeMB));
         MusicDownloader::downloadSong(info, [weak, info](Result<std::filesystem::path> downloaded) {
             // Persist completed downloads even if the browser was closed meanwhile.
             auto added = downloaded.isOk() ? SongLibrary::get().addSong(info, downloaded.unwrap()) : Result<std::string>(Err("{}", downloaded.unwrapErr()));
@@ -196,7 +203,7 @@ void MusicBrowserPopup::selectSong(int id) {
                 return;
             }
             popup->m_busy = false;
-            popup->setStatus(selected.isErr() ? selected.unwrapErr() : (popup->m_spanish ? "Cancion seleccionada" : "Song selected"));
+            popup->setStatus(selected.isErr() ? selected.unwrapErr() : "Song selected");
             popup->populateList();
         });
     });
@@ -212,7 +219,7 @@ void MusicBrowserPopup::onLocalFile(CCObject*) {
         if (result.isErr()) { setStatus(result.unwrapErr()); return; }
         if (!result.unwrap()) return;
         auto imported = SongLibrary::get().importLocalFile(*result.unwrap());
-        setStatus(imported.isErr() ? imported.unwrapErr() : (m_spanish ? "Archivo importado y activo" : "File imported and active"));
+        setStatus(imported.isErr() ? imported.unwrapErr() : "File imported and active");
         populateList();
     });
 }
