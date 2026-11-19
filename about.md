@@ -12,7 +12,7 @@ Choose any custom audio file (`.mp3`, `.ogg`, `.wav`, `.flac`) to play on the Ge
 - **Respects native game options:** Honors Geometry Dash's built-in **Menu Music** toggle (`GameVar::DisableMenuMusic`), remaining silent when disabled in game options.
 - **Instant reload:** Updating the file, toggling the mod, or changing the loop setting applies immediately from either the main menu or Geode's Mods list without restarting the game.
 - **Texture pack compatible shortcut:** Renders a native `CircleButtonSprite` overlaid with your active cube icon on the main menu bottom bar.
-- **Bilingual interface & notifications:** Spanish and English UI, status messages, and optional Now Playing popups.
+- **English interface & notifications:** English UI, status messages, and optional Now Playing popups.
 
 ## How to use
 

@@ -77,7 +77,7 @@ void MusicDownloader::fetchSongInfo(int songId, InfoCallback callback) {
                 auto body = response.string();
                 if (body.isErr()) return geode::Err("Unable to read song information");
                 auto text = body.unwrap();
-                if (text == "-1") return geode::Err("Song unavailable / Cancion no disponible");
+                if (text == "-1") return geode::Err("Song unavailable");
                 auto fields = geode::utils::string::split(text, "~|~");
                 SongInfo song;
                 for (size_t i = 0; i + 1 < fields.size(); i += 2) {
@@ -92,7 +92,7 @@ void MusicDownloader::fetchSongInfo(int songId, InfoCallback callback) {
                 }
                 if (song.id != songId || song.title.empty() || !validUrl(song.downloadUrl) ||
                     !std::isfinite(song.sizeMB) || song.sizeMB < 0)
-                    return geode::Err("Invalid song information / Respuesta invalida");
+                    return geode::Err("Invalid song information");
                 return geode::Ok(std::move(song));
             } catch (std::exception const& e) { return geode::Err("{}", e.what()); }
         }();
@@ -116,7 +116,7 @@ void MusicDownloader::downloadSong(SongInfo const& info, DownloadCallback callba
                 auto const& data = response.data();
                 bool id3 = data.size() >= 3 && data[0] == 'I' && data[1] == 'D' && data[2] == '3';
                 bool frame = data.size() >= 2 && data[0] == 0xff && (data[1] & 0xe0) == 0xe0;
-                if (!id3 && !frame) return geode::Err("Server did not return an MP3 / El servidor no devolvio un MP3");
+                if (!id3 && !frame) return geode::Err("Server did not return an MP3");
                 auto saved = response.into(temporary);
                 if (saved.isErr()) throw std::runtime_error(saved.unwrapErr());
                 std::filesystem::rename(temporary, destination);

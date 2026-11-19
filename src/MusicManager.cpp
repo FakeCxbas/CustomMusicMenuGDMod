@@ -8,14 +8,8 @@
 #include <Geode/binding/PlayLayer.hpp>
 #include <Geode/ui/Notification.hpp>
 
-#include <cctype>
-#include <cstdlib>
 #include <string>
 #include <system_error>
-
-#ifdef GEODE_IS_WINDOWS
-#include <windows.h>
-#endif
 
 namespace custom_menu_music {
     bool MusicManager::isModEnabled() {
@@ -43,34 +37,9 @@ namespace custom_menu_music {
             cocos2d::CCDirector::sharedDirector()->getRunningScene() != nullptr;
     }
 
-    bool MusicManager::isSpanish() {
-        auto language = geode::Mod::get()->getSettingValue<std::string>("language");
-        if (language == "Español") return true;
-        if (language == "English") return false;
-
-#ifdef GEODE_IS_WINDOWS
-        if ((GetUserDefaultUILanguage() & 0x3FF) == 0x0A) return true;
-#endif
-
-        for (auto variable : {"LC_ALL", "LANG"}) {
-            if (auto* value = std::getenv(variable)) {
-                std::string localeName(value);
-                for (auto& character : localeName) {
-                    character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
-                }
-                if (localeName.starts_with("es") || localeName.find("spanish") != std::string::npos) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     void MusicManager::showSongNotification(std::filesystem::path const& path) {
         auto name = geode::utils::string::pathToString(path.filename());
-        auto text = isSpanish()
-            ? fmt::format("Reproduciendo: {}", name)
-            : fmt::format("Now Playing: {}", name);
+        auto text = fmt::format("Now Playing: {}", name);
         geode::Notification::create(cleanGDText(text), geode::NotificationIcon::Success, 1.5f)->show();
     }
 

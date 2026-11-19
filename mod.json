@@ -69,17 +69,6 @@
 			"description": "Show 'Now Playing' notification every time you return to the main menu from a level.",
 			"type": "bool",
 			"default": false
-		},
-		"language": {
-			"name": "Language",
-			"description": "Language for in-game notifications.",
-			"type": "string",
-			"default": "Auto",
-			"one-of": [
-				"Auto",
-				"English",
-				"Español"
-			]
 		}
 	}
 }
