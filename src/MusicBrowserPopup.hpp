@@ -9,17 +9,20 @@
 namespace custom_menu_music {
 class MusicBrowserPopup : public geode::Popup {
 protected:
+    enum class Tab { Library, Jukebox, Download };
+    Tab m_tab = Tab::Library;
+    geode::TextInput* m_search = nullptr;
     geode::TextInput* m_songId = nullptr;
     cocos2d::CCLabelBMFont* m_statusLabel = nullptr;
     geode::ScrollLayer* m_list = nullptr;
     cocos2d::CCNode* m_online = nullptr;
     CCMenuItemSpriteExtra* m_libraryTab = nullptr;
+    CCMenuItemSpriteExtra* m_jukeboxTab = nullptr;
     CCMenuItemSpriteExtra* m_onlineTab = nullptr;
     CCMenuItemSpriteExtra* m_import = nullptr;
     geode::async::TaskHolder<geode::utils::file::PickResult> m_picker;
     bool m_busy = false;
     bool m_closed = false;
-    bool m_showLibrary = true;
     bool init() override;
     void onClose(cocos2d::CCObject* sender) override;
     void onTab(cocos2d::CCObject* sender);

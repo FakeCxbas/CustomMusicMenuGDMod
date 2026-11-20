@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3.0
+* Redesigned the music browser popup to match the native Geometry Dash Jukebox visual style
+* Added three dedicated tabs: `[ Library ]`, `[ GD Jukebox ]`, and `[ Download NG ]`
+* Integrated Geometry Dash downloaded level songs via `MusicDownloadManager` and local directory scan, allowing any downloaded GD track to be used as menu music
+* Added real-time search bar to filter songs instantly by title or artist in both Library and GD Jukebox
+* Styled song cards with native `GJ_square02.png` scale-9 borders, music note badges, and high-contrast typography
+* Maintained active song selection state and checkmark across all tabs
+
 ## v1.2.0
 * Standardized the interface, notifications, and download errors on English and removed the language setting
 * Fixed disappearing song buttons while scrolling by grouping each row into one culling container

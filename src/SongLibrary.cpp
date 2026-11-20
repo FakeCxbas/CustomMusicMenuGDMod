@@ -2,6 +2,9 @@
 #include "MusicManager.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/binding/MusicDownloadManager.hpp>
+#include <Geode/binding/SongInfoObject.hpp>
+#include <unordered_set>
 #include <algorithm>
 #include <charconv>
 #include <chrono>
@@ -89,6 +92,59 @@ Result<> SongLibrary::initialize() {
         if (result.isErr()) throw std::runtime_error(result.unwrapErr());
         return Ok();
     } catch (std::exception const& e) { m_error = e.what(); return Err("{}", m_error); }
+}
+std::vector<LibrarySong> SongLibrary::getJukeboxSongs() {
+    std::vector<LibrarySong> songs;
+    std::unordered_set<int> seen;
+    auto mdm = MusicDownloadManager::sharedState();
+    auto activePath = Mod::get()->getSettingValue<std::filesystem::path>("custom-music-file");
+    auto append = [&](int id, SongInfoObject* info, std::filesystem::path const& path) {
+        std::error_code ec;
+        if (id <= 0 || seen.contains(id) || !std::filesystem::is_regular_file(path, ec)) return;
+        seen.insert(id);
+        auto title = info ? std::string(info->m_songName) : std::string();
+        auto artist = info ? std::string(info->m_artistName) : std::string();
+        songs.push_back({fmt::format("gd-{}", id), title.empty() ? fmt::format("Song {}", id) : title,
+            artist, "GD Jukebox", id, path, samePath(path, activePath)});
+    };
+    if (mdm) {
+        if (auto downloaded = mdm->getDownloadedSongs()) {
+            for (auto song : CCArrayExt<SongInfoObject*>(downloaded)) {
+                if (song) append(song->m_songID, song, utf8Path(mdm->pathForSong(song->m_songID)));
+            }
+        }
+    }
+    // GD can have level downloads on disk that are absent from its song index.
+    std::error_code ec;
+    auto directory = utf8Path(CCFileUtils::sharedFileUtils()->getWritablePath());
+    std::filesystem::directory_iterator it(directory, ec), end;
+    while (!ec && it != end) {
+        auto path = it->path();
+        auto stem = pathText(path.stem());
+        if (string::toLower(pathText(path.extension())) == ".mp3" && !stem.empty() &&
+            std::ranges::all_of(stem, [](char c) { return c >= '0' && c <= '9'; })) {
+            int id = 0;
+            auto parsed = std::from_chars(stem.data(), stem.data() + stem.size(), id);
+            if (parsed.ec == std::errc{} && parsed.ptr == stem.data() + stem.size() && id > 0 && !seen.contains(id))
+                append(id, mdm ? mdm->getSongInfoObject(id) : nullptr, path);
+        }
+        it.increment(ec);
+    }
+    std::ranges::sort(songs, {}, &LibrarySong::songId);
+    return songs;
+}
+Result<> SongLibrary::setActiveJukeboxSong(int songId) {
+    GEODE_UNWRAP(initialize());
+    auto songs = getJukeboxSongs();
+    auto found = std::ranges::find(songs, songId, &LibrarySong::songId);
+    if (found == songs.end()) return Err("Downloaded GD song is missing");
+    // Reference the game's file directly; never copy it into the mod's cache.
+    SongInfo info;
+    info.id = found->songId;
+    info.title = found->title;
+    info.artist = found->artist;
+    GEODE_UNWRAP_INTO(auto id, addSong(info, found->filePath));
+    return setActiveSong(id);
 }
 Result<> SongLibrary::syncActive() {
     if (!m_loaded) return initialize();

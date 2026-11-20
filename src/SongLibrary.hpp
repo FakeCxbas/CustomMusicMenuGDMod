@@ -24,6 +24,8 @@ public:
     static SongLibrary& get();
     geode::Result<> initialize();
     std::vector<LibrarySong> const& songs() const { return m_songs; }
+    std::vector<LibrarySong> getJukeboxSongs();
+    geode::Result<> setActiveJukeboxSong(int songId);
     bool isSelecting() const { return m_selecting; }
     geode::Result<> syncActive();
     geode::Result<std::string> importLocalFile(std::filesystem::path const& path);
