@@ -51,10 +51,17 @@ bool MusicBrowserPopup::init() {
     if (!Popup::init(440.f, 320.f)) return false;
     setTitle("Music Browser");
     CCSpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile("GJ_GameSheet03.plist");
-    m_libraryTab = button("Library", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {118, 269}, .6f);
+    m_libraryTab = button("Library", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {80, 269}, .5f);
     m_libraryTab->setTag(0);
-    m_onlineTab = button("Download / Presets", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {310, 269}, .5f);
-    m_onlineTab->setTag(1);
+    m_jukeboxTab = button("GD Jukebox", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {220, 269}, .5f);
+    m_jukeboxTab->setTag(1);
+    m_onlineTab = button("Download NG", this, menu_selector(MusicBrowserPopup::onTab), m_buttonMenu, {360, 269}, .5f);
+    m_onlineTab->setTag(2);
+    m_search = TextInput::create(398, "Search song or artist...");
+    m_search->setPosition({220, 226});
+    m_search->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_.,'!?&()/");
+    m_search->setCallback([this](std::string const&) { populateList(); });
+    m_mainLayer->addChild(m_search);
     m_online = CCNode::create();
     m_mainLayer->addChild(m_online);
     label("Song ID:", m_online, {64, 226}, .4f, 80);
@@ -65,6 +72,7 @@ bool MusicBrowserPopup::init() {
     m_online->addChild(m_songId);
     auto menu = CCMenu::create(); menu->setPosition({0, 0}); m_online->addChild(menu);
     button("Download", this, menu_selector(MusicBrowserPopup::onDownload), menu, {350, 226});
+    label("Community Presets", m_online, {220, 195}, .32f, 250);
     m_statusLabel = label("", m_mainLayer, {220, 58}, .3f, 400, true);
     m_import = button("+ Import File", this, menu_selector(MusicBrowserPopup::onLocalFile), m_buttonMenu, {139, 27});
     button("Settings", this, menu_selector(MusicBrowserPopup::onSettings), m_buttonMenu, {345, 27});
@@ -85,40 +93,57 @@ void MusicBrowserPopup::setStatus(std::string const& text) {
 void MusicBrowserPopup::onTab(CCObject* sender) {
     auto synced = SongLibrary::get().syncActive();
     if (synced.isErr()) setStatus(synced.unwrapErr());
-    m_showLibrary = static_cast<CCNode*>(sender)->getTag() == 0;
+    m_tab = static_cast<Tab>(static_cast<CCNode*>(sender)->getTag());
     populateList();
 }
 void MusicBrowserPopup::populateList() {
-    m_online->setVisible(!m_showLibrary);
-    m_import->setVisible(m_showLibrary);
-    m_libraryTab->setOpacity(m_showLibrary ? 255 : 150);
-    m_onlineTab->setOpacity(m_showLibrary ? 150 : 255);
+    bool showingLibrary = m_tab == Tab::Library;
+    bool downloading = m_tab == Tab::Download;
+    m_online->setVisible(downloading);
+    m_search->setVisible(!downloading);
+    m_import->setVisible(showingLibrary);
+    m_libraryTab->setOpacity(showingLibrary ? 255 : 150);
+    m_jukeboxTab->setOpacity(m_tab == Tab::Jukebox ? 255 : 150);
+    m_onlineTab->setOpacity(downloading ? 255 : 150);
     if (m_list) m_list->removeFromParent();
-    float viewport = m_showLibrary ? 174.f : 126.f;
+    float viewport = downloading ? 108.f : 126.f;
     m_list = ScrollLayer::create(CCSize{400, viewport});
     m_list->setPosition({20, 76}); m_mainLayer->addChild(m_list);
     auto content = m_list->m_contentLayer;
     auto const& library = SongLibrary::get().songs();
     auto const& presets = MusicDownloader::getPresets();
-    size_t count = m_showLibrary ? library.size() : presets.size();
+    auto songs = m_tab == Tab::Jukebox ? SongLibrary::get().getJukeboxSongs() : library;
+    auto query = string::toLower(cleanGDText(m_search->getString()));
+    if (!downloading && !query.empty()) {
+        std::erase_if(songs, [&](auto const& song) {
+            return string::toLower(cleanGDText(song.title)).find(query) == std::string::npos &&
+                string::toLower(cleanGDText(song.artist)).find(query) == std::string::npos;
+        });
+    }
+    size_t count = downloading ? presets.size() : songs.size();
     float height = std::max(viewport, count * 58.f);
     content->setContentSize({400, height});
-    if (!count) label("Import your first song or choose a preset", content, {200, height / 2}, .75f, 360, true);
+    if (!count) label(!query.empty() ? "No matching songs" :
+        (showingLibrary ? "Import your first song or choose a preset" : "No downloaded GD songs found"),
+        content, {200, height / 2}, .75f, 360, true);
     for (size_t i = 0; i < count; ++i) {
         float y = height - (i + .5f) * 58.f;
         // Keep each row together so viewport culling also controls its buttons.
         auto row = CCNode::create();
-        row->setContentSize({398.f, 55.f});
+        row->setContentSize({398.f, 54.f});
         row->setPosition({1.f, y - 27.f});
         content->addChild(row);
-        auto bg = CCLayerColor::create(i % 2 ? ccc4(0, 0, 0, 65) : ccc4(255, 255, 255, 18), 398, 55);
-        bg->setPosition({0, 0}); row->addChild(bg);
+        auto bg = CCScale9Sprite::create("GJ_square02.png");
+        bg->setContentSize({398, 54});
+        bg->setColor(i % 2 ? ccc3(85, 65, 45) : ccc3(105, 80, 55));
+        bg->setPosition({199, 27}); row->addChild(bg);
         auto note = icon("GJ_noteIcon_001.png", 27);
         if (!note) note = icon("GJ_musicIcon_001.png", 27);
         if (note) { note->setPosition({23, 27}); row->addChild(note); }
-        auto title = m_showLibrary ? library[i].title : presets[i].title;
-        auto artist = m_showLibrary ? library[i].artist : presets[i].artist;
-        auto source = m_showLibrary ? (library[i].source == "Local" ? "Local" : fmt::format("NG {}", library[i].songId)) : fmt::format("NG {}", presets[i].id);
+        auto title = downloading ? presets[i].title : songs[i].title;
+        auto artist = downloading ? presets[i].artist : songs[i].artist;
+        auto source = downloading ? fmt::format("NG {}", presets[i].id) :
+            (songs[i].source == "Local" ? "Local" : fmt::format("{} {}", m_tab == Tab::Jukebox ? "GD" : "NG", songs[i].songId));
         auto titleNode = label(title, row, {46, 42}, .8f, 235, true); titleNode->setAnchorPoint({0, .5f});
         auto artistNode = label(artist.empty() ? "Unknown artist" : artist, row, {46, 27}, .6f, 235, true);
         artistNode->setAnchorPoint({0, .5f}); artistNode->setColor({190, 210, 230});
@@ -126,31 +151,33 @@ void MusicBrowserPopup::populateList() {
         sourceNode->setAnchorPoint({0, .5f}); sourceNode->setColor({150, 185, 210});
         auto rowMenu = CCMenu::create();
         rowMenu->setPosition({0, 0});
-        rowMenu->setContentSize({398.f, 55.f});
+        rowMenu->setContentSize({398.f, 54.f});
         row->addChild(rowMenu);
-        bool active = m_showLibrary ? library[i].active : std::ranges::any_of(library, [&](auto const& s) { return s.songId == presets[i].id && s.active; });
+        bool active = !downloading ? songs[i].active : std::ranges::any_of(library, [&](auto const& s) { return s.songId == presets[i].id && s.active; });
         if (active) activeBadge(row, 318, 27);
         else {
-            bool cached = m_showLibrary || MusicDownloader::getDownloadedPath(presets[i].id).has_value();
+            bool cached = !downloading || MusicDownloader::getDownloadedPath(presets[i].id).has_value();
             auto use = button(cached ? "USE" : "Get", this,
-                m_showLibrary ? menu_selector(MusicBrowserPopup::onUse) : menu_selector(MusicBrowserPopup::onPreset), rowMenu, {318, 27}, .43f);
-            if (m_showLibrary) use->setID(library[i].id);
+                !downloading ? menu_selector(MusicBrowserPopup::onUse) : menu_selector(MusicBrowserPopup::onPreset), rowMenu, {318, 27}, .43f);
+            if (!downloading) { use->setID(songs[i].id); use->setTag(songs[i].songId); }
             else use->setTag(presets[i].id);
         }
-        if (m_showLibrary) {
+        if (showingLibrary) {
             CCMenuItemSpriteExtra* remove = nullptr;
             if (auto trash = icon("GJ_trashBtn_001.png", 27)) {
                 remove = CCMenuItemSpriteExtra::create(trash, this, menu_selector(MusicBrowserPopup::onRemove));
                 remove->setPosition({377, 27}); rowMenu->addChild(remove);
             } else remove = button("X", this, menu_selector(MusicBrowserPopup::onRemove), rowMenu, {377, 27}, .4f);
-            remove->setID(library[i].id);
+            remove->setID(songs[i].id);
         }
     }
     m_list->scrollToTop();
 }
 void MusicBrowserPopup::onUse(CCObject* sender) {
     auto id = static_cast<CCNode*>(sender)->getID();
-    auto result = SongLibrary::get().setActiveSong(id);
+    auto result = m_tab == Tab::Jukebox ?
+        SongLibrary::get().setActiveJukeboxSong(static_cast<CCNode*>(sender)->getTag()) :
+        SongLibrary::get().setActiveSong(id);
     setStatus(result.isErr() ? result.unwrapErr() : "Song selected");
     populateList();
 }
